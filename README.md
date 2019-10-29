@@ -1,3 +1,10 @@
 # Image Colorization with Generative Adversarial Networks
 
-A TensorFlow2.0 implementation of https://arxiv.org/abs/1803.05400
+## To-Do
+ - [ ] Build Dataset
+ - [ ] Preprocessing function, write color conversion in pure tensorflow
+ - [ ] Log metrics to Tensorboard
+ - [ ] Compute PSNR
+ - [ ] Inference Loop
+ - [ ] TPU Compability
+ 
