@@ -189,7 +189,7 @@ class Colorizer:
                 self.discriminator.build((256, 256, 4))
                 self.latest_checkpoint = tf.train.latest_checkpoint(
                     self.model_dir)
-                logger.info('++++Restored Parameters from {}',
+                logger.info('++++Restored Parameters from ' +
                             self.latest_checkpoint)
                 self.restore_status = self.checkpoint.restore(
                     self.latest_checkpoint)
