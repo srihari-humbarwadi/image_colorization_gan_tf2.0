@@ -1,6 +1,17 @@
 A TensorFlow 2.0 implementation of the paper title [Image Colorization with Generative Adversarial Networks](https://arxiv.org/abs/1803.05400)
 
 ### Results
+![](demo_outputs/1gray.png) ![](demo_outputs/1rgb.png)
+
+![](demo_outputs/13gray.png) ![](demo_outputs/13rgb.png)
+
+![](demo_outputs/17gray.png) ![](demo_outputs/17rgb.png)
+
+![](demo_outputs/18gray.png) ![](demo_outputs/18rgb.png)
+
+![](demo_outputs/8gray.png) ![](demo_outputs/8rgb.png)
+
+![](demo_outputs/4gray.png) ![](demo_outputs/4rgb.png)
 
 
 ### Training on your own dataset
