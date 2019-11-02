@@ -1,94 +1,13 @@
+import numpy as np
+from skimage.color import rgb2lab, lab2rgb, rgb2gray
+from skimage.transform import resize
+from networks import build_discriminator, build_generator
+import os
+import tensorflow as tf
+
 import logging
 logger = logging.getLogger("tensorflow")
 logger.setLevel(logging.INFO)
-
-from glob import glob
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-from skimage.color import rgb2lab, lab2rgb, rgb2gray
-from skimage.io import imread, imsave
-from skimage.transform import resize
-import tensorflow as tf
-from tqdm import tqdm_notebook
-
-print('TensorFlow', tf.__version__)
-print('Executing eagerly =>', tf.executing_eagerly())
-tf.config.optimizer.set_jit(True)
-
-
-def imshow(image, title=None):
-    plt.figure(figsize=(16, 9))
-    plt.axis('off')
-    if title:
-        plt.title(title)
-    cmap = None if image.ndim == 3 else 'gray'
-    plt.imshow(image, cmap=cmap)
-
-
-def downscale_conv2D(tensor, n_filters, kernel_size=4, strides=2, name=None, use_bn=True):
-    _x = tf.keras.layers.Conv2D(filters=n_filters,
-                                kernel_size=kernel_size,
-                                strides=strides,
-                                padding='same',
-                                use_bias=False,
-                                name='downscale_block_' + name + '_conv2d',
-                                activation=None)(tensor)
-    if use_bn:
-        _x = tf.keras.layers.BatchNormalization(
-            name='downscale_block_' + name + '_bn')(_x)
-    _x = tf.keras.layers.LeakyReLU(
-        alpha=0.2, name='downscale_block_' + name + '_lrelu')(_x)
-    return _x
-
-
-def upscale_deconv2d(tensor, n_filters, kernel_size=4, strides=2, name=None):
-    _x = tf.keras.layers.Conv2DTranspose(filters=n_filters,
-                                         kernel_size=kernel_size,
-                                         strides=strides,
-                                         padding='same',
-                                         use_bias=False,
-                                         name='upscale_block_' + name + '_conv2d',
-                                         activation=None)(tensor)
-    _x = tf.keras.layers.BatchNormalization(
-        name='upscale_block_' + name + '_bn')(_x)
-    _x = tf.keras.layers.ReLU(name='upscale_block_' + name + '_relu')(_x)
-    return _x
-
-
-def build_generator():
-    _input = tf.keras.Input(shape=[256, 256, 1], name='image_input')
-    x = downscale_conv2D(_input, 64, strides=1, name='0')
-    features = [x]
-    for i, n_filters in enumerate([64, 128, 256, 512, 512, 512, 512]):
-        x = downscale_conv2D(x, n_filters, name=str(i + 1))
-        features.append(x)
-
-    for i, n_filters in enumerate([512, 512, 512, 256, 128, 64, 64]):
-        x = upscale_deconv2d(x, n_filters, name=str(i + 1))
-        x = tf.keras.layers.Concatenate()([features[-(i + 2)], x])
-    _output = tf.keras.layers.Conv2D(filters=3,
-                                     kernel_size=1,
-                                     strides=1,
-                                     padding='same',
-                                     name='output_conv2d',
-                                     activation='tanh')(x)
-    return tf.keras.Model(inputs=[_input], outputs=[_output], name='Generator')
-
-
-def build_discriminator():
-    _input = tf.keras.Input(shape=[256, 256, 4])
-    x = downscale_conv2D(_input, 64, strides=2, name='0', use_bn=False)
-    x = downscale_conv2D(x, 128, strides=2, name='1')
-    x = downscale_conv2D(x, 256, strides=2, name='2')
-    x = downscale_conv2D(x, 512, strides=1, name='3')
-    _output = tf.keras.layers.Conv2D(filters=1,
-                                     kernel_size=4,
-                                     strides=1,
-                                     padding='same',
-                                     name='output_conv2d',
-                                     activation=None)(x)
-    return tf.keras.Model(inputs=[_input], outputs=[_output], name='Discriminator')
 
 
 class Colorizer:
@@ -189,7 +108,7 @@ class Colorizer:
                 self.discriminator.build((256, 256, 4))
                 self.latest_checkpoint = tf.train.latest_checkpoint(
                     self.model_dir)
-                logger.info('++++Restored Parameters from {}',
+                logger.info('++++Restored Parameters from ' +
                             self.latest_checkpoint)
                 self.restore_status = self.checkpoint.restore(
                     self.latest_checkpoint)
@@ -322,7 +241,6 @@ class Colorizer:
             self.epoch += 1
 
     def __call__(self, grayscale_image):
-
         assert grayscale_image.ndim == 2
         grayscale_image = resize(grayscale_image, output_shape=(256, 256))
         grayscale_image = np.float32(grayscale_image[None, ..., None] * 2 - 1)
@@ -334,19 +252,3 @@ class Colorizer:
         ], axis=-1)
         rgb_image = np.uint8(lab2rgb(lab_image) * 255)
         return rgb_image
-
-
-config = {
-    'distribute_strategy': tf.distribute.OneDeviceStrategy(device='/gpu:0'),
-    'epochs': 200,
-    'batch_size': 32,
-    'd_lr': 3e-5,
-    'g_lr': 3e-4,
-    'image_list': glob('wiki/*/*'),
-    'model_dir': 'model_files',
-    'tensorboard_log_dir': 'logs',
-    'checkpoint_prefix': 'ckpt',
-    'restore_parameters': False
-}
-colorizer = Colorizer(config)
-colorizer.train()

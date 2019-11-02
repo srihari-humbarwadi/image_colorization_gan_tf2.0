@@ -5,6 +5,6 @@
  - [ ] Preprocessing function, write color conversion in pure tensorflow
  - [x] Log metrics to Tensorboard
  - [x] Compute PSNR
- - [x] Inference Loop
+ - [x] Inference function
  - [ ] TPU Compability
  
