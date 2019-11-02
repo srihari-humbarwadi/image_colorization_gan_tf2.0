@@ -38,4 +38,3 @@ config = {
  - [x] Compute PSNR
  - [x] Inference function
  - [ ] TPU Compability
- 
