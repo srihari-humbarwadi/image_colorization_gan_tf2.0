@@ -1,4 +1,4 @@
-from blocks import downscale_conv2D, upscale_deconv2d
+from .blocks import downscale_conv2D, upscale_deconv2d
 import tensorflow as tf
 
 

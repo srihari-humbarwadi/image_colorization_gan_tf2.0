@@ -1,7 +1,7 @@
 import numpy as np
 from skimage.color import rgb2lab, lab2rgb, rgb2gray
 from skimage.transform import resize
-from networks import build_discriminator, build_generator
+from .networks import build_discriminator, build_generator
 import os
 import tensorflow as tf
 
@@ -14,22 +14,30 @@ class Colorizer:
     def __init__(self, config):
         super(Colorizer, self).__init__()
         self.distribute_strategy = config['distribute_strategy']
-        self.epochs = config['epochs']
-        self.batch_size = config['batch_size']
-        self.d_lr = config['d_lr']
-        self.g_lr = config['g_lr']
-        self.image_list = config['image_list']
         self.model_dir = config['model_dir']
-        self.tensorboard_log_dir = config['tensorboard_log_dir']
         self.checkpoint_prefix = config['checkpoint_prefix']
         self.restore_parameters = config['restore_parameters']
-        self.build_dataset()
-        self.initialize_loss_objects()
-        self.initialize_metrics()
+        self.mode = config['mode'].lower()
+        self.d_lr = 1e-4
+        self.g_lr = 1e-4
+        assert self.mode in ['train', 'inference'], 'Invalid Mode'
+        if self.mode == 'train':
+            logger.info('++++Running In Training Mode')
+            self.epochs = config['epochs']
+            self.batch_size = config['batch_size']
+            self.d_lr = config['d_lr']
+            self.g_lr = config['g_lr']
+            self.image_list = config['image_list']
+            self.tensorboard_log_dir = config['tensorboard_log_dir']
+            self.build_dataset()
+            self.initialize_loss_objects()
+            self.initialize_metrics()
+            self.create_summary_writer()
+        else:
+            logger.info('++++Running In Inference Mode')
         self.build_models()
         self.create_optimizers()
         self.create_checkpoint_manager()
-        self.create_summary_writer()
 
     def build_models(self):
         logger.info('++++Building Models')
@@ -112,6 +120,9 @@ class Colorizer:
                             self.latest_checkpoint)
                 self.restore_status = self.checkpoint.restore(
                     self.latest_checkpoint)
+                
+    def restore_checkpoint(self, checkpoint_path):
+        self.checkpoint.restore(checkpoint_path)
 
     def create_summary_writer(self):
         self.summary_writer = tf.summary.create_file_writer(
@@ -184,6 +195,7 @@ class Colorizer:
         logger.info(metrics_dict)
 
     def train(self):
+        assert self.mode == 'train', 'Cannot train in inference mode'
         logger.info('++++Starting Training Loop')
 
         @tf.function
@@ -242,13 +254,16 @@ class Colorizer:
 
     def __call__(self, grayscale_image):
         assert grayscale_image.ndim == 2
+        aspect_ratio = grayscale_image.shape[1] / grayscale_image.shape[0]
+        resized_image = np.uint8(255 * resize(grayscale_image, (256//aspect_ratio ,256)))
         grayscale_image = resize(grayscale_image, output_shape=(256, 256))
-        grayscale_image = np.float32(grayscale_image[None, ..., None] * 2 - 1)
+        grayscale_image = np.float32(grayscale_image[None, ..., None]*2 - 1)
         lab_image = self.generator(grayscale_image, training=False)[0]
         lab_image = np.stack([
-            (lab_image[..., 0] + 1) * 50,
-            lab_image[..., 1] * 110,
-            lab_image[..., 2] * 110,
+            (lab_image[..., 0]+1)*50,
+            lab_image[..., 1]*110,
+            lab_image[..., 2]*110,
         ], axis=-1)
-        rgb_image = np.uint8(lab2rgb(lab_image) * 255)
-        return rgb_image
+        rgb_image = lab2rgb(lab_image) * 255
+        rgb_image = np.uint8(resize(rgb_image, (256//aspect_ratio ,256)))
+        return rgb_image, resized_image

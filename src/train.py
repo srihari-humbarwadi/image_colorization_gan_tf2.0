@@ -16,7 +16,8 @@ config = {
     'model_dir': 'model_files',
     'tensorboard_log_dir': 'logs',
     'checkpoint_prefix': 'ckpt',
-    'restore_parameters': False
+    'restore_parameters': False,
+    'mode': 'train'
 }
 colorizer = Colorizer(config)
 colorizer.train()
