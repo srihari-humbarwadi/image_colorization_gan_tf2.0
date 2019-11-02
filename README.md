@@ -1,9 +1,9 @@
-# Image Colorization with Generative Adversarial Networks
+A tensorflow2.0 implementation of the paper title [Image Colorization with Generative Adversarial Networks](https://arxiv.org/abs/1803.05400)
 
-## Results
+### Results
 
 
-## Training on your own dataset
+### Training on your own dataset
 Assuming your dataset has the following directory structure, an example training config is given below.
 For multi GPU and multi node distributed training change the distribution strategy in the config accordingly.
 ```
