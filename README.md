@@ -1,6 +1,6 @@
 [![HitCount](http://hits.dwyl.io/srihari-humbarwadi/image_colorization_gan_tf20.svg)](http://hits.dwyl.io/srihari-humbarwadi/image_colorization_gan_tf20)
 
-A TensorFlow 2.0 implementation of the paper title [Image Colorization with Generative Adversarial Networks](https://arxiv.org/abs/1803.05400)
+A TensorFlow 2.0 implementation of the paper with title [Image Colorization with Generative Adversarial Networks](https://arxiv.org/abs/1803.05400)
 
 ### Results
 ![](demo_outputs/1gray.png) ![](demo_outputs/1rgb.png)
