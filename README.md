@@ -45,9 +45,7 @@ config = {
 ```
 
 ## To-Do
- - [x] Build Dataset
  - [ ] Preprocessing function: write color conversion with tensorflow ops
  - [x] Log metrics to Tensorboard
  - [x] Compute PSNR
- - [x] Inference function
  - [ ] TPU Compability
