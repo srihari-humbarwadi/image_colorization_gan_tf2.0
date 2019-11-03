@@ -73,6 +73,8 @@ class Colorizer:
             self.dataset = tf.data.Dataset.from_tensor_slices(self.image_list)
             self.dataset = self.dataset.map(preprocess_input,
                                             num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            self.dataset = self.dataset.cache(os.path.join(self.model_dir,
+                                                           'dataset.cache'))
             self.dataset = self.dataset.batch(
                 self.batch_size, drop_remainder=True)
             self.dataset = self.dataset.prefetch(tf.data.experimental.AUTOTUNE)
