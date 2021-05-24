@@ -235,7 +235,7 @@ class Colorizer:
 
         @tf.function
         def distributed_train_step(grayscale_image, lab_image):
-            per_replica_metrics = self.distribute_strategy.experimental_run_v2(fn=train_step,
+            per_replica_metrics = self.distribute_strategy.run(fn=train_step,
                                                                                args=(grayscale_image, lab_image))
             reduced_metrics = self.distribute_strategy.reduce(tf.distribute.ReduceOp.SUM,
                                                               per_replica_metrics, axis=0)
